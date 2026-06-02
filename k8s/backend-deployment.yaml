@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payroll-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payroll-backend
+  template:
+    metadata:
+      labels:
+        app: payroll-backend
+    spec:
+      containers:
+        - name: payroll-backend
+          image: benmahmoud2024/payroll-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Development"
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+            - name: ConnectionStrings__DefaultConnection
+              value: "Server=sqlserver,1433;Database=PayrollManagementDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true"
+            - name: AiService__BaseUrl
+              value: "http://ai-service:8000/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payroll-backend
+spec:
+  selector:
+    app: payroll-backend
+  ports:
+    - port: 8080
+      targetPort: 8080

@@ -1,0 +1,46 @@
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: payroll-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong@Passw0rd"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  ai-service:
+    build:
+      context: ./ai-service
+    container_name: payroll-ai-service
+    ports:
+      - "8000:8000"
+
+  backend:
+    build:
+      context: "./projet pfe"
+    container_name: payroll-backend
+    ports:
+      - "60412:8080"
+    depends_on:
+      - sqlserver
+      - ai-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=PayrollManagementDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      AiService__BaseUrl: "http://ai-service:8000/"
+
+  frontend:
+    build:
+      context: ./front/payroll-management-frontend-full
+    container_name: payroll-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+volumes:
+  sqlserver_data:
